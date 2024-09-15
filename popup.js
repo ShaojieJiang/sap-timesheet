@@ -149,19 +149,24 @@ function buildNewTimesheetTable(data) {
 function writeTimesheet() {
     chrome.storage.local.get('timesheet', (data) => {
         if (data.timesheet) {
-            // Extract data from the stored timesheet
+            // Parse the stored timesheet HTML
             const parser = new DOMParser();
             const doc = parser.parseFromString(data.timesheet, 'text/html');
             const newTable = doc.querySelector('table');
 
             // Extract data from newTable
             const dataArray = [];
-            const rows = newTable.rows;
+            const rows = newTable ? newTable.rows : [];
             for (let i = 0; i < rows.length; i++) {
                 const cells = rows[i].cells;
                 const rowData = [];
                 for (let j = 0; j < cells.length; j++) {
-                    rowData.push(cells[j].innerText.trim());
+                    const inputElement = cells[j].querySelector('input');
+                    if (inputElement) {
+                        rowData.push(inputElement.value.trim());
+                    } else {
+                        rowData.push(cells[j].innerText.trim());
+                    }
                 }
                 dataArray.push(rowData);
             }
@@ -172,8 +177,11 @@ function writeTimesheet() {
                     {
                         target: { tabId: tabs[0].id },
                         args: [dataArray],
-                        func: (timesheetData) => {
-                            const originalTable = document.getElementById('__table2');
+                        function: function(timesheetData) {
+                            console.log('Received timesheetData:', timesheetData);
+                            const container = document.getElementById('__table2');
+                            // Find the table within the container
+                            const originalTable = container.querySelector('table');
                             if (originalTable) {
                                 const rows = originalTable.rows;
                                 for (let i = 0; i < timesheetData.length && i < rows.length; i++) {
@@ -195,6 +203,11 @@ function writeTimesheet() {
                                 alert('No target table found on this page.');
                             }
                         },
+                    },
+                    () => {
+                        if (chrome.runtime.lastError) {
+                            console.error('Error executing script:', chrome.runtime.lastError);
+                        }
                     }
                 );
             });
