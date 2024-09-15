@@ -176,6 +176,7 @@ function writeTimesheet() {
                         function: function(timesheetData) {
                             console.log('Received timesheetData:', timesheetData);
                             const originalTable = document.querySelector('.sapBUiListTab');
+                            const container = document.querySelector('.sapBUiListCnt');
                             if (originalTable) {
                                 const rows = originalTable.rows;
                                 for (let i = 0; i < timesheetData.length && i < rows.length; i++) {
@@ -185,23 +186,21 @@ function writeTimesheet() {
                                         const inputElement = cell.querySelector('input');
                                         if (inputElement) {
                                             // Set the value of the input element
-                                            inputElement.value = timesheetData[i][j];
-                                        } else {
-                                            // Set the text content of the cell
-                                            cell.innerText = timesheetData[i][j];
-                                        }
-                                        const blurEvent = new Event('focusout', {
-                                            bubbles: true,
-                                            cancelable: true,
-                                        });
-                                        if (inputElement) {
-                                            // inputElement.dispatchEvent(event);
-                                            const grandParent = inputElement.parentElement?.parentElement;
-                                            // alert(grandParent.id);
-                                            grandParent.dispatchEvent(blurEvent);
-                                        } else {
-                                            // cell.dispatchEvent(event);
-                                            // alert(cell);
+                                            const focusEvent = new FocusEvent('focusin', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                            });
+                                            const focusOutEvent = new FocusEvent('focusout', {
+                                                bubbles: true,
+                                                cancelable: true,
+                                            });
+                                            setTimeout(() => {
+                                                inputElement.value = timesheetData[i][j];
+                                                container.dispatchEvent(focusEvent);
+                                            }, 1000);
+                                            setTimeout(() => {
+                                                inputElement.dispatchEvent(focusOutEvent);
+                                            }, 3000);
                                         }
                                     }
                                 }
