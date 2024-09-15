@@ -21,9 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveTimeout = setTimeout(() => {
             const updatedTimesheet = displayDiv.innerHTML;
             // Optionally sanitize the HTML here
-            chrome.storage.local.set({ timesheet: updatedTimesheet }, () => {
-                alert('Timesheet updated in storage.');
-            });
+            chrome.storage.local.set({ timesheet: updatedTimesheet });
         }, 500); // Adjust the delay as needed
     });
 });
@@ -75,45 +73,130 @@ function expandTimesheet() {
 
 function extractTimesheet() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.scripting.executeScript({
-            target: { tabId: tabs[0].id },
-            func: () => {
-                const table = document.getElementById('__table2');
-                return table ? table.outerHTML : null;
+        chrome.scripting.executeScript(
+            {
+                target: { tabId: tabs[0].id },
+                func: () => {
+                    const container = document.getElementById('__table2');
+                    if (!container) {
+                        return null;
+                    }
+
+                    // Find the table within the container
+                    const originalTable = container.querySelector('table');
+                    if (!originalTable) {
+                        return null;
+                    }
+
+                    // Extract data from the original table
+                    const data = [];
+                    const rows = originalTable.rows;
+                    for (let i = 0; i < rows.length; i++) {
+                        const cells = rows[i].cells;
+                        const rowData = [];
+                        for (let j = 0; j < cells.length; j++) {
+                            const cell = cells[j];
+
+                            // Check for input elements within the cell
+                            const inputElement = cell.querySelector('input');
+                            if (inputElement) {
+                                // Get the value from the input element
+                                rowData.push(inputElement.value.trim());
+                            } else {
+                                // Get text content if no input element
+                                rowData.push(cell.innerText.trim());
+                            }
+                        }
+                        data.push(rowData);
+                    }
+
+                    return data;
+                },
             },
-        }, (results) => {
-            if (results && results[0] && results[0].result) {
-                const timesheetHTML = results[0].result;
-                // Store the extracted table in chrome.storage
-                chrome.storage.local.set({ timesheet: timesheetHTML }, () => {
-                    // Display the timesheet in the popup
-                    displayTimesheet(timesheetHTML);
-                    alert('Timesheet has been reloaded.');
-                });
-            } else {
-                alert('No timesheet found on this page.');
+            (results) => {
+                if (results && results[0] && results[0].result) {
+                    const timesheetData = results[0].result;
+                    // Build a new table from the extracted data
+                    const newTableHTML = buildNewTimesheetTable(timesheetData);
+
+                    // Store the new table HTML in chrome.storage
+                    chrome.storage.local.set({ timesheet: newTableHTML }, () => {
+                        // Display the timesheet in the popup
+                        displayTimesheet(newTableHTML);
+                        alert('Timesheet has been reloaded.');
+                    });
+                } else {
+                    alert('No timesheet found on this page.');
+                }
             }
-        });
+        );
     });
+}
+
+function buildNewTimesheetTable(data) {
+    let tableHTML = '<table border="1">';
+    for (let i = 0; i < data.length; i++) {
+        tableHTML += '<tr>';
+        for (let j = 0; j < data[i].length; j++) {
+            tableHTML += `<td contenteditable="true">${data[i][j]}</td>`;
+        }
+        tableHTML += '</tr>';
+    }
+    tableHTML += '</table>';
+    return tableHTML;
 }
 
 function writeTimesheet() {
     chrome.storage.local.get('timesheet', (data) => {
         if (data.timesheet) {
+            // Extract data from the stored timesheet
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.timesheet, 'text/html');
+            const newTable = doc.querySelector('table');
+
+            // Extract data from newTable
+            const dataArray = [];
+            const rows = newTable.rows;
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].cells;
+                const rowData = [];
+                for (let j = 0; j < cells.length; j++) {
+                    rowData.push(cells[j].innerText.trim());
+                }
+                dataArray.push(rowData);
+            }
+
+            // Now, inject this data back into the original table on the page
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                chrome.scripting.executeScript({
-                    target: { tabId: tabs[0].id },
-                    args: [data.timesheet],
-                    func: (timesheetHTML) => {
-                        const table = document.getElementById('__table2');
-                        if (table) {
-                            table.outerHTML = timesheetHTML;
-                            alert('Timesheet has been written to the page.');
-                        } else {
-                            alert('No target table found on this page.');
-                        }
-                    },
-                });
+                chrome.scripting.executeScript(
+                    {
+                        target: { tabId: tabs[0].id },
+                        args: [dataArray],
+                        func: (timesheetData) => {
+                            const originalTable = document.getElementById('__table2');
+                            if (originalTable) {
+                                const rows = originalTable.rows;
+                                for (let i = 0; i < timesheetData.length && i < rows.length; i++) {
+                                    const cells = rows[i].cells;
+                                    for (let j = 0; j < timesheetData[i].length && j < cells.length; j++) {
+                                        const cell = cells[j];
+                                        const inputElement = cell.querySelector('input');
+                                        if (inputElement) {
+                                            // Set the value of the input element
+                                            inputElement.value = timesheetData[i][j];
+                                        } else {
+                                            // Set the text content of the cell
+                                            cell.innerText = timesheetData[i][j];
+                                        }
+                                    }
+                                }
+                                alert('Timesheet has been written to the page.');
+                            } else {
+                                alert('No target table found on this page.');
+                            }
+                        },
+                    }
+                );
             });
         } else {
             alert('No timesheet data to write.');
