@@ -31,15 +31,18 @@ function expandTimesheet() {
         chrome.scripting.executeScript({
             target: { tabId: tabs[0].id },
             function: () => {
-                const element = document.getElementById('__table2');
-                if (element) {
-                    element.style.height = '1000px';
-                    console.log('Element height set to 1000px.');
+                const table = document.querySelector('.sapBUiListTab');
+                const container = table ? table.parentElement.parentElement.parentElement : null;
+                const containerId = container ? container.id : 'Container not found';
+                // const container = document.getElementById('__table2');
+                if (container) {
+                    container.style.height = '1000px';
+                    // console.log('Element height set to 1000px.');
                 } else {
-                    console.log('Element with ID "__table2" not found.');
+                    alert('Timesheet not found.');
                 }
                 // console.log(sap.b.controls.panes.list.Table);
-                const sldElement = document.getElementById('__table2_sld');
+                const sldElement = document.getElementById(containerId + '_sld');
                 if (sldElement) {
                     // Create a mousedown event, to trigger creation of element __table2_sld#
                     const mouseUpEvent = new MouseEvent('mousedown', {
@@ -48,12 +51,12 @@ function expandTimesheet() {
                         cancelable: true
                     });
                     sldElement.dispatchEvent(mouseUpEvent);
-                    console.log('Dispatched mouseup event on element with ID "__table2_sld".');
+                    console.log('Dispatched mouseup event on element with ID' + containerId + '_sld');
                 } else {
-                    console.log('Element with ID "__table2_sld" not found.');
+                    console.log('Element with ID ' + containerId + '_sld not found.');
                 }
 
-                const sldHashElement = document.getElementById('__table2_sld#');
+                const sldHashElement = document.getElementById(containerId + '_sld#');
                 if (sldHashElement) {
                     const mouseUpEvent = new MouseEvent('mouseup', {
                         view: window,
@@ -61,9 +64,9 @@ function expandTimesheet() {
                         cancelable: true
                     });
                     sldHashElement.dispatchEvent(mouseUpEvent);
-                    console.log('Dispatched mouseup event on element with ID "__table2_sld#".');
+                    console.log('Dispatched mouseup event on element with ID ' + containerId + '_sld#".');
                 } else {
-                    console.log('Element with ID "__table2_sld#" not found.');
+                    console.log('Element with ID ' + containerId + '_sld#" not found.');
                 }
             },
         });
@@ -195,6 +198,19 @@ function writeTimesheet() {
                                         } else {
                                             // Set the text content of the cell
                                             cell.innerText = timesheetData[i][j];
+                                        }
+                                        const blurEvent = new Event('focusout', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                        });
+                                        if (inputElement) {
+                                            // inputElement.dispatchEvent(event);
+                                            const grandParent = inputElement.parentElement?.parentElement;
+                                            // alert(grandParent.id);
+                                            grandParent.dispatchEvent(blurEvent);
+                                        } else {
+                                            // cell.dispatchEvent(event);
+                                            // alert(cell);
                                         }
                                     }
                                 }
