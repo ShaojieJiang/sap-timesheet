@@ -34,17 +34,15 @@ function expandTimesheet() {
                 const table = document.querySelector('.sapBUiListTab');
                 const container = table ? table.parentElement.parentElement.parentElement : null;
                 const containerId = container ? container.id : 'Container not found';
-                // const container = document.getElementById('__table2');
                 if (container) {
                     container.style.height = '1000px';
-                    // console.log('Element height set to 1000px.');
                 } else {
                     alert('Timesheet not found.');
                 }
                 // console.log(sap.b.controls.panes.list.Table);
                 const sldElement = document.getElementById(containerId + '_sld');
                 if (sldElement) {
-                    // Create a mousedown event, to trigger creation of element __table2_sld#
+                    // Create a mousedown event, to trigger creation of element {containerId}_sld#
                     const mouseUpEvent = new MouseEvent('mousedown', {
                         view: window,
                         bubbles: true,
@@ -80,13 +78,8 @@ function extractTimesheet() {
             {
                 target: { tabId: tabs[0].id },
                 func: () => {
-                    const container = document.getElementById('__table2');
-                    if (!container) {
-                        return null;
-                    }
-
                     // Find the table within the container
-                    const originalTable = container.querySelector('table');
+                    const originalTable = document.querySelector('.sapBUiListTab');
                     if (!originalTable) {
                         return null;
                     }
@@ -182,9 +175,7 @@ function writeTimesheet() {
                         args: [dataArray],
                         function: function(timesheetData) {
                             console.log('Received timesheetData:', timesheetData);
-                            const container = document.getElementById('__table2');
-                            // Find the table within the container
-                            const originalTable = container.querySelector('table');
+                            const originalTable = document.querySelector('.sapBUiListTab');
                             if (originalTable) {
                                 const rows = originalTable.rows;
                                 for (let i = 0; i < timesheetData.length && i < rows.length; i++) {
