@@ -186,6 +186,7 @@ function writeTimesheet() {
                                         const inputElement = cell.querySelector('input');
                                         if (inputElement) {
                                             // Set the value of the input element
+                                            // TODO: Event doesn't work. Timesheet needs to be manually refreshed.
                                             const focusEvent = new FocusEvent('focusin', {
                                                 bubbles: true,
                                                 cancelable: true,
