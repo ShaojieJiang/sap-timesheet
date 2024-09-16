@@ -5,7 +5,7 @@ Write time to SAP with less pain.
 
 ## SAP Timesheet
 
-SAP timesheet slows you down on **every** input.
+SAP timesheet slows you down on **every** input:
 
 https://github.com/user-attachments/assets/9f730cc8-69fc-4942-afea-dfa0986e293f
 
@@ -13,7 +13,7 @@ https://github.com/user-attachments/assets/9f730cc8-69fc-4942-afea-dfa0986e293f
 
 With this Chrome extension, you only need to open SAP when you need to update your projects or writing time (yes, you still need to write time to SAP).
 
-https://github.com/user-attachments/assets/ec50f0e4-30b9-4605-90b2-add779794e82
+https://github.com/user-attachments/assets/425a085d-88fc-4494-a8d8-af36ca6839fa
 
 ## Features
 
