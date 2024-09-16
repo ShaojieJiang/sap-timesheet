@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('expand').addEventListener('click', expandTimesheet);
     document.getElementById('extract').addEventListener('click', extractTimesheet);
     document.getElementById('write').addEventListener('click', writeTimesheet);
+    document.getElementById('reset').addEventListener('click', resetTimesheet);
 
     var displayDiv = document.getElementById('timesheetDisplay');
     displayDiv.contentEditable = true;
@@ -211,4 +212,32 @@ function displayTimesheet(timesheetHTML) {
     if (displayDiv) {
         displayDiv.innerHTML = timesheetHTML;
     }
+}
+
+function resetTimesheet() {
+    chrome.storage.local.get('timesheet', (data) => {
+        if (data.timesheet) {
+            // Parse the stored timesheet HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.timesheet, 'text/html');
+            const editableElements = doc.querySelectorAll('[contenteditable="true"]');
+
+            // Set the content of all editable elements to empty string
+            editableElements.forEach((element) => {
+                element.innerText = '';
+            });
+
+            // Serialize the updated HTML
+            const updatedTimesheet = doc.body.innerHTML;
+
+            // Update the storage
+            chrome.storage.local.set({ timesheet: updatedTimesheet }, () => {
+                // Update the display
+                displayTimesheet(updatedTimesheet);
+                alert('Timesheet has been reset.');
+            });
+        } else {
+            alert('No timesheet data to reset.');
+        }
+    });
 }
