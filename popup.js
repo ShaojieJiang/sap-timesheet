@@ -104,7 +104,8 @@ function extractTimesheet() {
                                 cellContent = cell.innerText.trim();
                             }
 
-                            tableHTML += `<td contenteditable="true">${cellContent}</td>`;
+                            const isEditable = cell.classList.contains('sapBUiListCell-aggr');
+                            tableHTML += `<td contenteditable="${isEditable}">${cellContent}</td>`;
                         }
                         tableHTML += '</tr>';
                     }
