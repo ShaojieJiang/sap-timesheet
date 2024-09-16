@@ -84,37 +84,38 @@ function extractTimesheet() {
                         return null;
                     }
 
-                    // Extract data from the original table
-                    const data = [];
+                    // Extract data and build new table HTML
+                    let tableHTML = '<table border="1">';
                     const rows = originalTable.rows;
                     for (let i = 0; i < rows.length; i++) {
+                        tableHTML += '<tr>';
                         const cells = rows[i].cells;
-                        const rowData = [];
                         for (let j = 0; j < cells.length; j++) {
                             const cell = cells[j];
+                            let cellContent = '';
 
                             // Check for input elements within the cell
                             const inputElement = cell.querySelector('input');
                             if (inputElement) {
                                 // Get the value from the input element
-                                rowData.push(inputElement.value.trim());
+                                cellContent = inputElement.value.trim();
                             } else {
                                 // Get text content if no input element
-                                rowData.push(cell.innerText.trim());
+                                cellContent = cell.innerText.trim();
                             }
-                        }
-                        data.push(rowData);
-                    }
 
-                    return data;
+                            tableHTML += `<td contenteditable="true">${cellContent}</td>`;
+                        }
+                        tableHTML += '</tr>';
+                    }
+                    tableHTML += '</table>';
+
+                    return tableHTML;
                 },
             },
             (results) => {
                 if (results && results[0] && results[0].result) {
-                    const timesheetData = results[0].result;
-                    // Build a new table from the extracted data
-                    const newTableHTML = buildNewTimesheetTable(timesheetData);
-
+                    const newTableHTML = results[0].result;
                     // Store the new table HTML in chrome.storage
                     chrome.storage.local.set({ timesheet: newTableHTML }, () => {
                         // Display the timesheet in the popup
@@ -127,19 +128,6 @@ function extractTimesheet() {
             }
         );
     });
-}
-
-function buildNewTimesheetTable(data) {
-    let tableHTML = '<table border="1">';
-    for (let i = 0; i < data.length; i++) {
-        tableHTML += '<tr>';
-        for (let j = 0; j < data[i].length; j++) {
-            tableHTML += `<td contenteditable="true">${data[i][j]}</td>`;
-        }
-        tableHTML += '</tr>';
-    }
-    tableHTML += '</table>';
-    return tableHTML;
 }
 
 function writeTimesheet() {
@@ -176,7 +164,6 @@ function writeTimesheet() {
                         function: function (timesheetData) {
                             console.log('Received timesheetData:', timesheetData);
                             const originalTable = document.querySelector('.sapBUiListTab');
-                            const container = document.querySelector('.sapBUiListCnt');
                             if (originalTable) {
                                 const rows = originalTable.rows;
                                 for (let i = 0; i < timesheetData.length && i < rows.length; i++) {
