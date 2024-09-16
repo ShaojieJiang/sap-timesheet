@@ -173,7 +173,7 @@ function writeTimesheet() {
                     {
                         target: { tabId: tabs[0].id },
                         args: [dataArray],
-                        function: function(timesheetData) {
+                        function: function (timesheetData) {
                             console.log('Received timesheetData:', timesheetData);
                             const originalTable = document.querySelector('.sapBUiListTab');
                             const container = document.querySelector('.sapBUiListCnt');
@@ -184,24 +184,18 @@ function writeTimesheet() {
                                     for (let j = 0; j < timesheetData[i].length && j < cells.length; j++) {
                                         const cell = cells[j];
                                         const inputElement = cell.querySelector('input');
-                                        if (inputElement) {
-                                            // Set the value of the input element
-                                            // TODO: Event doesn't work. Timesheet needs to be manually refreshed.
-                                            const focusEvent = new FocusEvent('focusin', {
+                                        // Only set value for time cells
+                                        if (inputElement && cell.classList.contains('sapBUiListCell-aggr')) {
+                                            inputElement.value = timesheetData[i][j];
+                                            const sapEnterEvent = new KeyboardEvent('keydown', {
                                                 bubbles: true,
                                                 cancelable: true,
+                                                key: 'Enter',
+                                                code: 'Enter',
+                                                keyCode: 13,
+                                                which: 13
                                             });
-                                            const focusOutEvent = new FocusEvent('focusout', {
-                                                bubbles: true,
-                                                cancelable: true,
-                                            });
-                                            setTimeout(() => {
-                                                inputElement.value = timesheetData[i][j];
-                                                container.dispatchEvent(focusEvent);
-                                            }, 1000);
-                                            setTimeout(() => {
-                                                inputElement.dispatchEvent(focusOutEvent);
-                                            }, 3000);
+                                            inputElement.dispatchEvent(sapEnterEvent);
                                         }
                                     }
                                 }
