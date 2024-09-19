@@ -25,6 +25,6 @@ https://github.com/user-attachments/assets/425a085d-88fc-4494-a8d8-af36ca6839fa
 ## TODO
 
 * [x] Trigger update automatically.
-* [ ] Package and release to Extension store.
+* [x] Package and release to Extension store.
 * [ ] ~~Input type-checking.~~
 * [x] Reset time for a new week.
